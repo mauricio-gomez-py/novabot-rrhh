@@ -10,6 +10,19 @@ Diseño e implementación de un asistente de RRHH conversacional sobre **n8n**, 
 
 ---
 
+## Resumen
+
+**Orquestación**: n8n como pipeline visual
+**Inteligencia**: GPT-4o-mini + tool-calling (4 herramientas distintas)
+**Memoria**: Window Buffer Memory para contexto multi-turno
+**Recuperación**: RAG con embeddings (text-embedding-3-small) + Vector Store
+**Multi-canal**: Telegram + Lovable con normalización unificada de inputs en un nodo dedicado
+**Integraciones externas**: Google Sheets, Google Calendar, Google Drive
+**Logging**: 12 campos registrados por conversación, 9 categorías de consulta clasificadas
+Sub-workflow separado para ingesta RAG
+
+---
+
 ## 🎯 Problema
 
 Los equipos de RRHH invierten una fracción significativa de su tiempo respondiendo consultas repetitivas de empleados: días de vacaciones disponibles, políticas de trabajo remoto, solicitudes de permisos, agendamiento de reuniones. Estas tareas, aunque necesarias, no agregan valor estratégico al área. **NovaBot** automatiza este flujo mediante un agente conversacional que accede en tiempo real a los sistemas de la empresa, liberando al equipo de RRHH para tareas de mayor impacto.
