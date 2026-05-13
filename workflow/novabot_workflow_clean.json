@@ -1,0 +1,966 @@
+{
+  "name": "NovaTech RRHH Agent - Sistema Principal",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "1cfc6836-5ae1-4ab1-95e9-346f7ed116a3",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -656,
+        -448
+      ],
+      "webhookId": "novatech-telegram",
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "novatech-chat",
+        "responseMode": "responseNode",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "YOUR_ALLOWED_ORIGIN"
+              }
+            ]
+          }
+        }
+      },
+      "id": "509b572b-47b3-41c6-9060-ea425ce86e46",
+      "name": "Webhook Lovable Chat",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        -208
+      ],
+      "webhookId": "novatech-lovable-chat"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "user-message",
+              "name": "userMessage",
+              "value": "={{ $json.message?.text || $json.body?.message || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "user-id",
+              "name": "userId",
+              "value": "={{ $json.message?.from?.id || $json.body?.userId || 'anonymous' }}",
+              "type": "string"
+            },
+            {
+              "id": "user-name",
+              "name": "userName",
+              "value": "={{ $json.message?.from?.first_name || $json.body?.userName || 'Usuario' }}",
+              "type": "string"
+            },
+            {
+              "id": "source-channel",
+              "name": "sourceChannel",
+              "value": "={{ $json.message?.from?.id ? 'telegram' : 'lovable' }}",
+              "type": "string"
+            },
+            {
+              "id": "chat-id",
+              "name": "chatId",
+              "value": "={{ $json.message?.chat?.id || '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "dd22d274-0db9-4cdf-93af-7b095a53fb84",
+      "name": "Preparar Contexto",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -400,
+        -336
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.userMessage }}",
+        "options": {
+          "systemMessage": "Eres el Asistente Virtual de Recursos Humanos de NovaTech. Tu nombre es NovaBot.\n\nTu rol es ayudar a los empleados de NovaTech con:\n1. **Preguntas sobre políticas de la empresa** (vacaciones, permisos, DEI, seguridad, trabajo remoto, beneficios, cultura, crecimiento profesional)\n2. **Solicitudes de vacaciones** (registrar nuevas solicitudes verificando días disponibles)\n3. **Agendar reuniones** con el Director de Recursos Humanos\n4. **Consultas sobre clientes** de la base de datos\n\n## INSTRUCCIONES DE COMPORTAMIENTO:\n- Responde siempre en español de forma profesional y amigable.\n- Si el usuario pregunta sobre políticas, USA la herramienta de RAG para buscar en los documentos oficiales.\n- Si el usuario quiere solicitar vacaciones:\n  1. Pregunta las fechas deseadas (inicio y fin)\n  2. Usa la herramienta de Google Sheets para verificar días disponibles del empleado\n  3. Registra la solicitud en la hoja de vacaciones completando las columnas con los datos de la Base de Datos de Empleados y en estado debes escribir 'Pendiente'\n  4. Confirma al usuario que la solicitud fue registrada\n- Si el usuario quiere agendar una reunión con RRHH, usa la herramienta de Google Calendar.\n- Si el usuario pregunta por información de clientes, consulta la hoja de clientes.\n- Registra TODAS las conversaciones en Google Sheets para métricas.\n- Si el usuario consulta la base de datos de empleados, consulta la hoja de Empleados.\n## CLASIFICACIÓN DE TEMAS:\nClasifica cada consulta en una de estas categorías:\n- Vacaciones y Permisos\n- Diversidad e Inclusión (DEI)\n- Seguridad y Trabajo Remoto\n- Beneficios y Compensación\n- Crecimiento Profesional\n- Cultura Organizacional\n- Consulta de Clientes\n- Agendamiento de Reuniones\n- FAQ General\n- Otro\n\nUsuario actual: {{ $json.userName }} (ID: {{ $json.userId }})\nCanal: {{ $json.sourceChannel }}"
+        }
+      },
+      "id": "88cdaa47-e65b-4419-9ce2-39bac342c6d3",
+      "name": "Agente RRHH NovaTech",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -192,
+        -336
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "id": "6c5ff8a8-c370-4685-a2c1-079f3005d745",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        -112
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.userId }}",
+        "contextWindowLength": 16000
+      },
+      "id": "35b73ac4-ca2c-4072-8bb5-12281742cc60",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -176,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "condition-telegram",
+              "leftValue": "={{ $('Preparar Contexto').item.json.sourceChannel }}",
+              "rightValue": "telegram",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b05493ab-64f0-487d-b597-7f076caa8aab",
+      "name": "Router Respuesta",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        144,
+        -336
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ response: $('Agente RRHH NovaTech').item.json.output }) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "YOUR_ALLOWED_ORIGIN"
+              }
+            ]
+          }
+        }
+      },
+      "id": "06222202-1df8-467a-a008-a67c4ff27ec1",
+      "name": "Responder Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        400,
+        -256
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "YOUR_SPREADSHEET_NAME",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1767179639,
+          "mode": "list",
+          "cachedResultName": "Registro Conversaciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID Conversación": "={{ $execution.id }}",
+            "Nombre Empleado": "={{$('Preparar Contexto').item.json.userName}}",
+            "Fecha": "={{ new Date().toISOString().split('T')[0] }}",
+            "Hora": "={{ new Date().toLocaleTimeString('es-CL') }}",
+            "Canal": "={{ $('Preparar Contexto').item.json.sourceChannel }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ID Conversación",
+              "displayName": "ID Conversación",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ID Empleado",
+              "displayName": "ID Empleado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nombre Empleado",
+              "displayName": "Nombre Empleado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Hora",
+              "displayName": "Hora",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Canal",
+              "displayName": "Canal",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tipo de Consulta",
+              "displayName": "Tipo de Consulta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Subtema",
+              "displayName": "Subtema",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Resumen Consulta",
+              "displayName": "Resumen Consulta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tiempo Respuesta (s)",
+              "displayName": "Tiempo Respuesta (s)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "output",
+              "displayName": "output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "82f10953-d495-445f-9405-d81fb9c87609",
+      "name": "Registrar Conversación en Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        144,
+        -560
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "notes": "Conectar con la Google Sheet de métricas. Crear hoja 'Conversaciones' con columnas: timestamp, usuario, user_id, canal, pregunta, respuesta, tema"
+    },
+    {
+      "parameters": {
+        "content": "## 📋 Instrucciones de Configuración\n\n### 1. Credenciales necesarias:\n- **Telegram Bot Token**: Crear bot con @BotFather\n- **OpenAI API Key**: Para el modelo y embeddings\n- **Google Sheets OAuth**: Para hojas de cálculo\n- **Google Calendar OAuth**: Para agendamiento\n- **Pinecone API Key** (o vector store alternativo)\n\n### 2. Google Sheets a configurar:\n- Hoja 'Conversaciones': timestamp, usuario, user_id, canal, pregunta, respuesta, tema\n- Hoja 'Solicitudes_Vacaciones': timestamp, empleado, fecha_inicio, fecha_fin, dias_solicitados, motivo, estado, aprobado_por\n- Conectar hoja YOUR_SPREADSHEET_NAME existente\n- Conectar hoja clientes_TechNova_Chile existente\n\n### 3. Vector Store (RAG):\nCargar los 7 documentos de cultura:\n- Política de Vacaciones y Permisos\n- Política Global DEI\n- Protocolo Seguridad y Trabajo Remoto\n- FAQ NovaTech\n- Guía Crecimiento Profesional\n- Manual de Beneficios y Compensación\n- Manifiesto de Cultura\n\n### 4. Webhook para Lovable:\nUsar la URL del webhook para conectar el chat flotante",
+        "height": 820,
+        "width": 748,
+        "color": 5
+      },
+      "id": "cffd2f7a-873b-4214-b2de-22fd1f5b8324",
+      "name": "Sticky Note - Instrucciones",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2000,
+        -976
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🔧 Sub-Workflows (Tools del Agente)\n\nEstos nodos representan las herramientas que el agente puede invocar. En n8n se implementan como sub-workflows separados o como nodos inline.",
+        "height": 416,
+        "width": 924,
+        "color": 3
+      },
+      "id": "a7241575-3d42-48e5-8a66-25f458b02788",
+      "name": "Sticky Note - Tools",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1312,
+        -1152
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 📊 Flujo Principal\nTelegram / Lovable → Preparar Contexto → Agente IA → Router → Respuesta + Log",
+        "height": 112,
+        "width": 1272
+      },
+      "id": "bac1972d-9e56-40d3-b20e-d3f6f191cfc2",
+      "name": "Sticky Note - Flujo",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        -768
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Preparar Contexto').item.json.chatId }}",
+        "text": "={{ $('Agente RRHH NovaTech').item.json.output }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "05fae571-0a23-40ba-8643-dd80a29cca7d",
+      "name": "Enviar por Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        -416
+      ],
+      "webhookId": "763cf027-7fbd-4da0-8843-2b25fc0f9341",
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formTitle": "Upload your data to test RAG",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Upload your file(s)",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf, .csv",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -752,
+        64
+      ],
+      "id": "e86d8bba-4c6d-4766-b389-12ec4db12275",
+      "name": "Upload your file here",
+      "webhookId": "7ffb9676-6559-4476-9c6b-cec975e299cc"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -336,
+        480
+      ],
+      "id": "1ee19848-0d48-4210-99c9-60cdfbd73813",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -336,
+        208
+      ],
+      "id": "df12898c-4f01-4af0-a52f-6cad7984f07f",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": {
+          "__rl": true,
+          "value": "Novatech",
+          "mode": "list",
+          "cachedResultName": "Novatech"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.2,
+      "position": [
+        -512,
+        64
+      ],
+      "id": "999a91f7-8a56-4f06-b599-17ff11e498b0",
+      "name": "Insert Data to Store"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Esta herramienta contiene los documentos de la compañia",
+        "memoryKey": {
+          "__rl": true,
+          "value": "Novatech",
+          "mode": "list",
+          "cachedResultName": "Novatech"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        -144,
+        80
+      ],
+      "id": "c771a261-49e5-4007-9f7e-7a555e719549",
+      "name": "Base de Conocimiento (RAG)"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Esta herramienta contiene la información de los empleados de NovaTech",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "YOUR_SPREADSHEET_NAME",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1006974242,
+          "mode": "list",
+          "cachedResultName": "Empleados",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        160,
+        64
+      ],
+      "id": "225bcc7c-9efe-4728-8785-4cdb2d93ca39",
+      "name": "Base de Datos de Empleados",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "grupo3.magisteria.1.uai@gmail.com",
+          "mode": "list",
+          "cachedResultName": "grupo3.magisteria.1.uai@gmail.com"
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        304,
+        64
+      ],
+      "id": "d4076e2c-93a3-4579-af43-5eeac5257b30",
+      "name": "Create an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "YOUR_GOOGLE_CALENDAR_CREDENTIAL_ID",
+          "name": "Google Calendar OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Esta herramienta registra tanto las solicitudes de vacaciones como los otros tipos de políticas con su clasificación. Al ingresar el nombre del empleado que quiere solicitar vacaciones ingresa su id de solicitud y su id de empleado",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "YOUR_SPREADSHEET_NAME",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1005608925,
+          "mode": "list",
+          "cachedResultName": "Solicitudes Vacaciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID Solicitud": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('ID_Solicitud', ``, 'string') }}",
+            "ID Empleado": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('ID_Empleado', ``, 'string') }}",
+            "Nombre Empleado": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Nombre_Empleado', ``, 'string') }}",
+            "Departamento": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Departamento', ``, 'string') }}",
+            "Fecha Inicio": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Fecha_Inicio', ``, 'string') }}",
+            "Fecha Fin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Fecha_Fin', ``, 'string') }}",
+            "Días Solicitados": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('D_as_Solicitados', ``, 'string') }}",
+            "Fecha Solicitud": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Fecha_Solicitud', ``, 'string') }}",
+            "Estado": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Estado', ``, 'string') }}",
+            "Aprobado Por": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Aprobado_Por', ``, 'string') }}",
+            "Comentarios": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Comentarios', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ID Solicitud",
+              "displayName": "ID Solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ID Empleado",
+              "displayName": "ID Empleado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nombre Empleado",
+              "displayName": "Nombre Empleado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Departamento",
+              "displayName": "Departamento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fecha Inicio",
+              "displayName": "Fecha Inicio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fecha Fin",
+              "displayName": "Fecha Fin",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Días Solicitados",
+              "displayName": "Días Solicitados",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fecha Solicitud",
+              "displayName": "Fecha Solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Aprobado Por",
+              "displayName": "Aprobado Por",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Comentarios",
+              "displayName": "Comentarios",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        448,
+        64
+      ],
+      "id": "4506032c-c4eb-404e-a001-f907fd73b509",
+      "name": "Solicitudes de vacaciones",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Preparar Contexto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Lovable Chat": {
+      "main": [
+        [
+          {
+            "node": "Preparar Contexto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Contexto": {
+      "main": [
+        [
+          {
+            "node": "Agente RRHH NovaTech",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente RRHH NovaTech": {
+      "main": [
+        [
+          {
+            "node": "Router Respuesta",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Registrar Conversación en Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente RRHH NovaTech",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente RRHH NovaTech",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router Respuesta": {
+      "main": [
+        [
+          {
+            "node": "Enviar por Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Conversación en Sheet": {
+      "main": [
+        []
+      ]
+    },
+    "Upload your file here": {
+      "main": [
+        [
+          {
+            "node": "Insert Data to Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Insert Data to Store",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Base de Conocimiento (RAG)",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Insert Data to Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Base de Conocimiento (RAG)": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente RRHH NovaTech",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Base de Datos de Empleados": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente RRHH NovaTech",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente RRHH NovaTech",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Solicitudes de vacaciones": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente RRHH NovaTech",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "YOUR_VERSION_ID",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "YOUR_INSTANCE_ID"
+  },
+  "id": "YOUR_WORKFLOW_ID",
+  "tags": [
+    {
+      "updatedAt": "2026-03-19T01:10:32.900Z",
+      "createdAt": "2026-03-19T01:10:32.900Z",
+      "id": "YiLuXgXYL0M6CGL8",
+      "name": "RRHH"
+    },
+    {
+      "updatedAt": "2026-03-19T01:10:32.956Z",
+      "createdAt": "2026-03-19T01:10:32.956Z",
+      "id": "YwaCZhiQ0cFeSFBl",
+      "name": "Agente IA"
+    },
+    {
+      "updatedAt": "2026-03-19T01:10:32.929Z",
+      "createdAt": "2026-03-19T01:10:32.929Z",
+      "id": "fqlB9jDRCbI5X6RE",
+      "name": "NovaTech"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+# ============================================================
+#  NovaBot — .gitignore
+# ============================================================
+
+# Variables de entorno con credenciales reales
+.env
+.env.local
+.env.production
+
+# Archivos de workflow con datos reales (usa la versión _clean.json)
+*_real.json
+*_original.json
+
+# n8n
+.n8n/
+n8n-data/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Dependencias (si usas scripts Python/Node auxiliares)
+node_modules/
+__pycache__/
+*.pyc
+venv/
+.venv/
