@@ -12,14 +12,14 @@ Diseño e implementación de un asistente de RRHH conversacional sobre **n8n**, 
 
 ## Resumen
 
-**Orquestación**: n8n como pipeline visual
-**Inteligencia**: GPT-4o-mini + tool-calling (4 herramientas distintas)
-**Memoria**: Window Buffer Memory para contexto multi-turno
-**Recuperación**: RAG con embeddings (text-embedding-3-small) + Vector Store
-**Multi-canal**: Telegram + Lovable con normalización unificada de inputs en un nodo dedicado
-**Integraciones externas**: Google Sheets, Google Calendar, Google Drive
-**Logging**: 12 campos registrados por conversación, 9 categorías de consulta clasificadas
-Sub-workflow separado para ingesta RAG
+- **Orquestación**: n8n como pipeline visual
+- **Inteligencia**: GPT-4o-mini + tool-calling (4 herramientas distintas)
+- **Memoria**: Window Buffer Memory para contexto multi-turno
+- **Recuperación**: RAG con embeddings (text-embedding-3-small) + Vector Store
+- **Multi-canal**: Telegram + Lovable con normalización unificada de inputs en un nodo dedicado
+- **Integraciones externas**: Google Sheets, Google Calendar, Google Drive
+- **Logging**: 12 campos registrados por conversación, 9 categorías de consulta clasificadas
+- Sub-workflow separado para ingesta RAG
 
 ---
 
