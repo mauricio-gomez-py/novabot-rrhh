@@ -15,7 +15,7 @@ Dicho esto, continuemos con este proyecto.
 ---
 ## Descripción del proyecto
 
-Diseño e implementación de un asistente de RRHH conversacional sobre **n8n**, accesible vía **Telegram** y **web chat (Lovable)**. El agente responde consultas sobre políticas internas mediante RAG, gestiona solicitudes de vacaciones, agenda reuniones en Google Calendar y consulta bases de empleados en Google Sheets — centralizando en un solo pipeline tareas que antes requerían múltiples sistemas e intervención humana.
+Diseño e implementación de un asistente de RRHH conversacional sobre **n8n**, accesible vía **Telegram** y **web chat (Lovable)**. El agente responde consultas sobre políticas internas de tu empresa mediante RAG, gestiona solicitudes de vacaciones, agenda reuniones en Google Calendar y consulta bases de empleados en Google Sheets — centralizando en un solo pipeline tareas que antes requerían múltiples sistemas e intervención humana.
 
 ![Estado](https://img.shields.io/badge/estado-completo-brightgreen)
 ![n8n](https://img.shields.io/badge/n8n-automatización-red)
@@ -188,6 +188,7 @@ novabot-rrhh/
 - [ ] **Clasificación estructurada de consultas**: Tags XML en el system prompt para reemplazar keyword matching
 - [ ] **Autenticación en el webhook**: Añadir header de validación para el endpoint de Lovable
 - [ ] **Tests de integración**: Validar respuestas del agente ante inputs edge-case por herramienta
+- [ ] **Corregir registros en google sheets**: corregir el registro de las queries de los usuarios en googlesheets para que se muestren estructuradas en tablas.
 
 ---
 
