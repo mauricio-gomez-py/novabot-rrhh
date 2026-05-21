@@ -1,4 +1,19 @@
-# NovaBot — Asistente Conversacional de RRHH con IA y Automatización Multicanal
+# NovaBot — Agente de IA para RRHH y Automatización Multicanal
+---
+## Breve introducción: ¿Qué es un agente de IA?
+
+Un **agente de inteligencia artificial** es un sistema de software autónomo diseñado para **percibir su entorno, tomar decisiones y ejecutar acciones independientes con el fin de alcanzar un objetivo específico sin supervisión humana constante**. A diferencia de los chatbots tradicionales, que solo responden preguntas basándose en instrucciones inmediatas, los agentes de IA tienen la capacidad de razonar, descomponer un objetivo en subtareas y utilizar herramientas externas (como APIs o bases de datos) sin necesidad, como ya mencioné, de supervisión humana constante. 
+
+Para operar de forma independiente, los agentes modernos integran cuatro pilares esenciales: 
+
+* Percepción: Recopila información mediante texto, voz, imágenes o sensores.
+* Cerebro (LLM): Modela el razonamiento utilizando modelos de lenguaje avanzados.
+* Memoria: Retiene interacciones previas a corto y largo plazo para mantener el contexto.
+* Acción: Ejecuta tareas conectándose a herramientas como CRMs, calendarios o correos electrónicos.
+
+Dicho esto, continuemos con este proyecto.
+---
+## Descripción del proyecto
 
 Diseño e implementación de un asistente de RRHH conversacional sobre **n8n**, accesible vía **Telegram** y **web chat (Lovable)**. El agente responde consultas sobre políticas internas mediante RAG, gestiona solicitudes de vacaciones, agenda reuniones en Google Calendar y consulta bases de empleados en Google Sheets — centralizando en un solo pipeline tareas que antes requerían múltiples sistemas e intervención humana.
 
@@ -10,7 +25,7 @@ Diseño e implementación de un asistente de RRHH conversacional sobre **n8n**, 
 
 ---
 
-## Resumen
+## Resumen del workflow
 
 
 - **Orquestación**: n8n como pipeline visual
