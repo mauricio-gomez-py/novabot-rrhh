@@ -34,6 +34,7 @@ Diseño e implementación de un asistente de RRHH conversacional sobre **n8n**, 
 - **Recuperación**: RAG con embeddings (text-embedding-3-small) + Vector Store
 - **Multi-canal**: Telegram + Lovable con normalización unificada de inputs en un nodo dedicado
 - **Integraciones externas**: Google Sheets, Google Calendar, Google Drive
+- **Dashboard automatizado de KPIs**: Despliegue de Dashboard mediante Lovable visualizando KPIs de gestión de RRHH
 - **Logging**: 12 campos registrados por conversación, 9 categorías de consulta clasificadas
 - Sub-workflow separado para ingesta RAG
 
@@ -122,6 +123,9 @@ Este proyecto es un **prototipo funcional** orientado a demostrar la arquitectur
 | Tipos de consulta clasificados | 9 categorías |
 | Cobertura de flujos RRHH | Políticas · Vacaciones · Reuniones · Consulta de empleados |
 
+
+<img width="1507" height="820" alt="image" src="https://github.com/user-attachments/assets/262b097a-f6fe-451f-a541-095943fe692e" />
+* En la misma interfaz de Lovable donde se intereactua con el webchat se despliega un dashboard de KPIs para el área de RRHH, visualizando de manera automática la gestión del área.
 **Observaciones:** El agente maneja correctamente solicitudes multi-turno gracias a la memoria de ventana. La clasificación de tipo de consulta (`Tipo de Consulta`) es el componente más frágil: al basarse en keywords del output del agente, puede producir categorías inconsistentes cuando la respuesta varía en redacción.
 
 ---
